@@ -1,0 +1,47 @@
+- name: This playbook will provision couple of ubuntu and centos containers
+  hosts: localhost
+  vars:
+    docker_images:
+     - "verizon/ansible-ubuntu"
+     - "verizon/ansible-centos"
+
+  tasks:
+    - name: Install Extra packages for Enterprise Linux(EPEL)
+      when: ansible_distribution == "CentOS"
+      yum: name=epel-release state=latest
+
+    - name: Install Python package installer utility
+      when: ansible_distribution == "CentOS"
+      yum: name=python-pip state=latest
+    
+    - name: Install Python package installer utility
+      when: ansible_distribution == "Ubuntu"
+      apt: name=python-pip state=latest update_cache=yes
+    
+    - name: Install docker.py python package
+      shell: pip install docker-py
+
+    - name: Delete all containers if running previously
+      shell: "docker rm -f {{item}}}"
+      ignore_errors: yes
+      with_items: "{{docker_images}}"
+      
+    - name: Provision Ubuntu Container
+      docker_container:
+          name: "ubuntu{{item}}"
+          image: "verizon/ansible-ubuntu"
+          state: started
+          ports:
+            - "200{{item}}:22"
+            - "800{{item}}:80"
+      with_sequence: start=1 end=2
+
+    - name: Provision Centos Container
+      docker_container:
+          name: "centos{{item}}"
+          image: "verizon/ansible-centos"
+          state: started
+          ports:
+            - "200{{item}}:22"
+            - "800{{item}}:80"
+      with_sequence: start=3 end=4
