@@ -1,0 +1,11 @@
+---
+- name: Install EPEL for CentOS
+  yum: name=epel-release state=latest 
+
+- name: Install apache in Centos
+  yum: name=httpd state=latest 
+
+- name: Starting httpd process
+  command: service httpd start
+
+...
